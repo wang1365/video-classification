@@ -1,0 +1,7 @@
+openai-whisper
+moviepy
+pydub
+python-docx
+scikit-learn
+pyinstaller
+pdfplumber

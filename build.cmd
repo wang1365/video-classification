@@ -1,0 +1,2 @@
+
+pyinstaller ui.spec --clean
