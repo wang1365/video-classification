@@ -116,9 +116,6 @@ class FileClassifierApp:
         self.classification_status_label = tk.Label(self.classify_frame, text="Status: Ready")
         self.classification_status_label.pack(pady=5)
 
-        self.classification_result_label = tk.Label(self.classify_frame, text="Result: ")
-        self.classification_result_label.pack(pady=5)
-
         # 分类结果表格
         self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
         self.result_tree.heading('time', text='完成时间')
