@@ -119,11 +119,11 @@ class FileClassifierApp:
                                              command=self.start_video_classification)
         self.btn_classify_videos.pack(side="left", padx=5)
 
-        self.btn_open_log = tk.Button(self.button_frame, text="Open Log", command=lambda : os.startfile('log.txt'))
+        self.btn_open_log = tk.Button(self.button_frame, text="Open Log", command=lambda: os.startfile('log.txt'))
         self.btn_open_log.pack(side="left", padx=5)
 
-        self.classification_status_label = tk.Label(self.classify_frame, text="Status: Ready")
-        self.classification_status_label.pack(pady=5)
+        self.classification_status_label = tk.Label(self.button_frame, text="Status: Ready")
+        self.classification_status_label.pack(side="left", padx=5)
 
         # 分类结果表格
         self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
