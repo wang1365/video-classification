@@ -137,6 +137,28 @@ class FileClassifierApp:
         self.result_tree.column('video', width=300)
         self.result_tree.column('script', width=300)
 
+        # 添加双击事件处理
+        def on_tree_double_click(event):
+            item = self.result_tree.identify('item', event.x, event.y)
+            column = self.result_tree.identify('column', event.x, event.y)
+
+            if item:
+                values = self.result_tree.item(item, 'values')
+                if column == '#2' and values[1]:  # video列
+                    video_path = os.path.join(self.video_folder_path, values[1])
+                    if os.path.exists(video_path):
+                        os.startfile(video_path)
+                    else:
+                        messagebox.showerror("Error", "Video file not found!")
+                elif column == '#3' and values[2]:  # script列
+                    script_path = os.path.join(self.pdf_folder_path, values[2])
+                    if os.path.exists(script_path):
+                        os.startfile(script_path)
+                    else:
+                        messagebox.showerror("Error", "Script file not found!")
+
+        self.result_tree.bind('<Double-1>', on_tree_double_click)
+
         # 滚动条
         self.result_scrollbar = ttk.Scrollbar(self.classify_frame, orient="vertical", command=self.result_tree.yview)
         self.result_tree.configure(yscrollcommand=self.result_scrollbar.set)
