@@ -111,7 +111,7 @@ class FileClassifierApp:
 
         # 创建按钮和状态标签的容器框架
         self.status_frame = tk.Frame(self.classify_frame)
-        self.status_frame.pack(pady=10, anchor='w')  # 添加anchor='w'使整个容器靠左
+        self.status_frame.pack(pady=10, anchor='w')
 
         self.btn_classify_videos = tk.Button(self.status_frame, text="Start >>",
                                              command=self.start_video_classification)
@@ -119,6 +119,12 @@ class FileClassifierApp:
 
         self.classification_status_label = tk.Label(self.status_frame, text="Status: Ready")
         self.classification_status_label.pack(side="left", padx=5)
+
+        def open_log():
+            os.startfile('log.txt')
+        # 将Open Log按钮移动到状态标签后面
+        self.btn_open_log = tk.Button(self.status_frame, text="Open Log", command=open_log)
+        self.btn_open_log.pack(side="left", padx=5)
 
         # 分类结果表格
         self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
@@ -160,13 +166,6 @@ class FileClassifierApp:
                     f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + str + '\n')
 
         sys.stdout = TextRedirector()
-
-        # 创建一个button, 点击后可以打开log.txt
-        def open_log():
-            os.startfile('log.txt')
-
-        self.btn_open_log = tk.Button(self.classify_frame, text="Open Log", command=open_log)
-        self.btn_open_log.pack(pady=5)
 
         # 存储当前选择的文件夹路径
         self.video_folder_path = ""
@@ -285,22 +284,21 @@ class FileClassifierApp:
         """
         try:
             results = future.result()  # 获取分类结果
+            self.classification_status_label.config(text="Status: Done")  # 修改状态为完成
             # for item in results:
             #     video, pdf = pathlib.Path(item[0]).name, pathlib.Path(item[1]).name
             #     result_line = f"Video: {video} -> Script: {pdf} "
             #     self.result_listbox.insert(tk.END, result_line)
-            # self.classification_status_label.config(text="Status: Done！")
         except Exception as e:
             self.classification_status_label.config(text=f"Status: Error！{e}")
-            print("主线程捕获到异常:\n", traceback.format_exc())  # 打印到控制台
-            # 将异常信息写入到日志文件
+            print("主线程捕获到异常:\n", traceback.format_exc())
             with open("error.log", "a", encoding="utf8") as log_file:
                 log_file.write(f"Error occurred at {time.strftime('%Y-%m-%d %H:%M:%S')}:\n")
                 log_file.write(traceback.format_exc())
                 log_file.write("\n")
             messagebox.showerror("Error", f"WOW: {e}")
         finally:
-            self.btn_classify_videos.config(state=tk.NORMAL)  # 重新启用按钮
+            self.btn_classify_videos.config(state=tk.NORMAL)
 
 
 # 创建Tkinter主窗口
