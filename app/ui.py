@@ -8,6 +8,8 @@ import time  # 用于模拟耗时操作
 from concurrent.futures import ThreadPoolExecutor  # 用于多线程处理
 from tkinter import ttk
 
+from app.main import extract_text_from_pdf
+
 os.environ['PATH'] = os.environ['PATH'] + os.pathsep + "./_internal"
 
 
@@ -110,27 +112,24 @@ class FileClassifierApp:
         self.classify_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         # 创建按钮和状态标签的容器框架
-        self.status_frame = tk.Frame(self.classify_frame)
-        self.status_frame.pack(pady=10, anchor='w')
+        self.button_frame = tk.Frame(self.classify_frame)
+        self.button_frame.pack(pady=10, anchor='w')
 
-        self.btn_classify_videos = tk.Button(self.status_frame, text="Start >>",
+        self.btn_classify_videos = tk.Button(self.button_frame, text="Start >>",
                                              command=self.start_video_classification)
         self.btn_classify_videos.pack(side="left", padx=5)
 
-        self.classification_status_label = tk.Label(self.status_frame, text="Status: Ready")
-        self.classification_status_label.pack(side="left", padx=5)
-
-        def open_log():
-            os.startfile('log.txt')
-        # 将Open Log按钮移动到状态标签后面
-        self.btn_open_log = tk.Button(self.status_frame, text="Open Log", command=open_log)
+        self.btn_open_log = tk.Button(self.button_frame, text="Open Log", command=lambda : os.startfile('log.txt'))
         self.btn_open_log.pack(side="left", padx=5)
+
+        self.classification_status_label = tk.Label(self.classify_frame, text="Status: Ready")
+        self.classification_status_label.pack(pady=5)
 
         # 分类结果表格
         self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
-        self.result_tree.heading('time', text='完成时间')
-        self.result_tree.heading('video', text='Video文件')
-        self.result_tree.heading('script', text='匹配Script')
+        self.result_tree.heading('time', text='Time')  # 完成时间 -> Time
+        self.result_tree.heading('video', text='Video File')  # Video文件 -> Video File
+        self.result_tree.heading('script', text='Matched Script')  # 匹配Script -> Matched Script
 
         # 设置列宽
         self.result_tree.column('time', width=180)
@@ -273,10 +272,26 @@ class FileClassifierApp:
         if not pdf_files:
             return ["没有找到PDF剧本文件进行分类。"]
 
-        from app.main import extract_all_pdfs, main
+        from app.main import extract_text_from_pdf, main
         pfs = [os.path.join(self.pdf_folder_path, pf) for pf in pdf_files]
         vfs = [os.path.join(self.video_folder_path, vf) for vf in video_files]
-        pfs_info = extract_all_pdfs(pfs)
+
+        pfs_info = {}
+        for pf in pfs:
+            pdf_name = os.path.basename(pf)
+            self.classification_status_label.config(text=f"Status: Extracting {pdf_name}...")
+            try:
+                text = extract_text_from_pdf(pf)
+                pfs_info[pf] = text
+
+                # 设置对应的PDF Listbox条目为绿色
+                for i in range(self.pdf_listbox.size()):
+                    if self.pdf_listbox.get(i) == pdf_name:
+                        self.pdf_listbox.itemconfig(i, {'fg': 'green'})
+                        break
+            except Exception as e:
+                print(f"Error extracting {pdf_name}: {str(e)}")
+                continue
 
         # 在_run_classification_logic方法中修改结果插入部分
         for vf in vfs:
