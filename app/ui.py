@@ -41,7 +41,7 @@ class FileClassifierApp:
 
         self.btn_select_video_folder.grid(row=0, column=0, pady=5, sticky="w")
 
-        self.video_folder_label = tk.Label(self.video_frame, text="Current Video Folder: Unselected", anchor="w")
+        self.video_folder_label = tk.Label(self.video_frame, text="", anchor="w")
         self.video_folder_label.grid(row=0, column=1, pady=5, sticky="w")
 
         # 将btn_select_video_folder 和 video_folder_label 放置在同一行
@@ -80,7 +80,7 @@ class FileClassifierApp:
                                                command=self.select_pdf_folder)
         self.btn_select_pdf_folder.grid(row=0, column=0, columnspan=1, pady=5, sticky="w")
 
-        self.pdf_folder_label = tk.Label(self.pdf_frame, text="Current Script Folder: Unselected", anchor="w")
+        self.pdf_folder_label = tk.Label(self.pdf_frame, text="", anchor="w")
         self.pdf_folder_label.grid(row=0, column=1, columnspan=3, pady=5, sticky="w")
 
         # PDF文件列表框
@@ -180,7 +180,7 @@ class FileClassifierApp:
         if folder_selected:
             self.video_folder_path = folder_selected
             self.video_folder_label.config(
-                text=f"Current Video Folder: {self.video_folder_path}")  # 只显示文件夹名
+                text=f"{self.video_folder_path}")  # 只显示文件夹名
             self.load_files_to_listbox(self.video_folder_path, self.video_listbox,
                                        ['.mxf'])
         else:
@@ -190,7 +190,7 @@ class FileClassifierApp:
         folder_selected = filedialog.askdirectory()
         if folder_selected:
             self.pdf_folder_path = folder_selected
-            self.pdf_folder_label.config(text=f"Current Script Folder: {self.pdf_folder_path}")  # 只显示文件夹名
+            self.pdf_folder_label.config(text=f"{self.pdf_folder_path}")  # 只显示文件夹名
             self.load_files_to_listbox(self.pdf_folder_path, self.pdf_listbox, ['.pdf'])
         else:
             messagebox.showinfo("Warning", "No script folder selected.")
@@ -232,7 +232,7 @@ class FileClassifierApp:
         future = self.executor.submit(self._run_classification_logic)
         future.add_done_callback(self._on_classification_done)
 
-    def _run_classification_logic(self, ):
+    def _run_classification_logic(self):
         """
         这个函数将包含你的实际视频分类逻辑。
         为了避免界面卡死，它应该在一个单独的线程中运行。
@@ -262,10 +262,16 @@ class FileClassifierApp:
             try:
                 result = main(vf, pfs_info)
                 current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-                # 只显示文件名而不是完整路径
                 video_name = os.path.basename(vf)
                 script_name = os.path.basename(result) if result else "未匹配"
                 self.result_tree.insert('', 'end', values=(current_time, video_name, script_name))
+
+                # 找到并设置对应的Listbox条目为绿色
+                for i in range(self.video_listbox.size()):
+                    if self.video_listbox.get(i) == video_name:
+                        self.video_listbox.itemconfig(i, {'fg': 'green'})
+                        break
+
             except Exception as e:
                 error_traceback = traceback.format_exc()
                 print("子线程捕获到异常:\n", error_traceback)
