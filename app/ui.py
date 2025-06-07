@@ -11,7 +11,7 @@ os.environ['PATH'] = os.environ['PATH'] + os.pathsep + "./_internal"
 class FileClassifierApp:
     def __init__(self, master):
         self.master = master
-        master.title("视频与剧本分类工具")
+        master.title("Video Classification Tool")
         master.geometry("1200x700")  # 调整窗口大小以适应左右两部分
 
         # 左右主框架
@@ -28,54 +28,60 @@ class FileClassifierApp:
 
         # --- 左侧功能区 ---
         # 视频文件部分
-        self.video_frame = tk.LabelFrame(self.left_frame, text="视频文件", padx=10, pady=10)
+        self.video_frame = tk.LabelFrame(self.left_frame, text="Video", padx=10, pady=10)
         self.video_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        self.btn_select_video_folder = tk.Button(self.video_frame, text="选择视频文件夹",
-                                                 command=self.select_video_folder)
-        self.btn_select_video_folder.pack(pady=5)
 
-        self.video_folder_label = tk.Label(self.video_frame, text="当前视频文件夹: 未选择")
-        self.video_folder_label.pack(pady=5)
+        self.btn_select_video_folder = tk.Button(self.video_frame, text="Select Video Folder",
+                                                 command=self.select_video_folder)
+
+        self.btn_select_video_folder.grid(row=0, column=0, pady=5)
+
+        self.video_folder_label = tk.Label(self.video_frame, text="Current Video Folder: Unselected")
+        self.video_folder_label.grid(row=0, column=1, pady=5)
+
+        # 将btn_select_video_folder 和 video_folder_label 放置在同一行
+        # self.btn_select_video_folder.pack(side="left", padx=5)
 
         # 视频文件列表框
         self.video_list_scrollbar = tk.Scrollbar(self.video_frame)
-        self.video_list_scrollbar.pack(side="right", fill="y")
+        # self.video_list_scrollbar.grid(row=0, column=1, pady=5)
         self.video_listbox = tk.Listbox(self.video_frame, width=60, height=10,
                                         yscrollcommand=self.video_list_scrollbar.set)
-        self.video_listbox.pack(pady=5, fill="both", expand=True)
+        self.video_listbox.grid(row=2, column=0, columnspan=2, pady=5)
         self.video_list_scrollbar.config(command=self.video_listbox.yview)
 
+
         # PDF文件部分
-        self.pdf_frame = tk.LabelFrame(self.left_frame, text="剧本文件 (PDF)", padx=10, pady=10)
+        self.pdf_frame = tk.LabelFrame(self.left_frame, text="Script Files (PDF)", padx=10, pady=10)
         self.pdf_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        self.btn_select_pdf_folder = tk.Button(self.pdf_frame, text="选择PDF文件夹", command=self.select_pdf_folder)
-        self.btn_select_pdf_folder.pack(pady=5)
+        self.btn_select_pdf_folder = tk.Button(self.pdf_frame, text="Select Script Folder", command=self.select_pdf_folder)
+        self.btn_select_pdf_folder.grid(row=0, column=0, pady=5)
 
-        self.pdf_folder_label = tk.Label(self.pdf_frame, text="当前PDF文件夹: 未选择")
-        self.pdf_folder_label.pack(pady=5)
+        self.pdf_folder_label = tk.Label(self.pdf_frame, text="Current Script Folder: Unselected")
+        self.pdf_folder_label.grid(row=0, column=1, pady=5)
 
         # PDF文件列表框
         self.pdf_list_scrollbar = tk.Scrollbar(self.pdf_frame)
-        self.pdf_list_scrollbar.pack(side="right", fill="y")
+        # self.pdf_list_scrollbar.pack(side="right", fill="y")
         self.pdf_listbox = tk.Listbox(self.pdf_frame, width=60, height=10,
                                       yscrollcommand=self.pdf_list_scrollbar.set)
-        self.pdf_listbox.pack(pady=5, fill="both", expand=True)
+        self.pdf_listbox.grid(row=1, column=0, columnspan=2, pady=5)
         self.pdf_list_scrollbar.config(command=self.pdf_listbox.yview)
 
         # --- 右侧功能区 ---
-        self.classify_frame = tk.LabelFrame(self.right_frame, text="视频分类操作与结果", padx=10, pady=10)
+        self.classify_frame = tk.LabelFrame(self.right_frame, text="Video Classification Result", padx=10, pady=10)
         self.classify_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        self.btn_classify_videos = tk.Button(self.classify_frame, text="开始视频分类",
+        self.btn_classify_videos = tk.Button(self.classify_frame, text="Start >>>",
                                              command=self.start_video_classification)
         self.btn_classify_videos.pack(pady=10)
 
-        self.classification_status_label = tk.Label(self.classify_frame, text="状态: 准备就绪")
+        self.classification_status_label = tk.Label(self.classify_frame, text="Status: Ready")
         self.classification_status_label.pack(pady=5)
 
-        self.classification_result_label = tk.Label(self.classify_frame, text="分类结果:")
+        self.classification_result_label = tk.Label(self.classify_frame, text="Result: ")
         self.classification_result_label.pack(pady=5)
 
         # 分类结果列表框
@@ -98,25 +104,25 @@ class FileClassifierApp:
         if folder_selected:
             self.video_folder_path = folder_selected
             self.video_folder_label.config(
-                text=f"当前视频文件夹: {os.path.basename(self.video_folder_path)}")  # 只显示文件夹名
+                text=f"Current Video Folder: {os.path.basename(self.video_folder_path)}")  # 只显示文件夹名
             self.load_files_to_listbox(self.video_folder_path, self.video_listbox,
                                        ['.mxf'])
         else:
-            messagebox.showinfo("提示", "未选择视频文件夹。")
+            messagebox.showinfo("Warning", "No video folder selected.")
 
     def select_pdf_folder(self):
         folder_selected = filedialog.askdirectory()
         if folder_selected:
             self.pdf_folder_path = folder_selected
-            self.pdf_folder_label.config(text=f"当前PDF文件夹: {os.path.basename(self.pdf_folder_path)}")  # 只显示文件夹名
+            self.pdf_folder_label.config(text=f"Current Script Folder: {os.path.basename(self.pdf_folder_path)}")  # 只显示文件夹名
             self.load_files_to_listbox(self.pdf_folder_path, self.pdf_listbox, ['.pdf'])
         else:
-            messagebox.showinfo("提示", "未选择PDF文件夹。")
+            messagebox.showinfo("Warning", "No script folder selected.")
 
     def load_files_to_listbox(self, folder_path, listbox_widget, allowed_extensions):
         listbox_widget.delete(0, tk.END)  # 清空现有列表
         if not os.path.exists(folder_path):
-            messagebox.showerror("错误", "指定的文件夹不存在！")
+            messagebox.showerror("Error", "Folder not exist！")
             return
 
         files = []
@@ -128,22 +134,22 @@ class FileClassifierApp:
                     files.append(item)
 
         if not files:
-            listbox_widget.insert(tk.END, "此文件夹中没有找到匹配的文件。")
+            listbox_widget.insert(tk.END, "No matched file found in this folder.")
         else:
             for file_name in sorted(files):
                 listbox_widget.insert(tk.END, file_name)
 
     def start_video_classification(self):
         if not self.video_folder_path or not os.path.exists(self.video_folder_path):
-            messagebox.showwarning("警告", "请先选择有效的视频文件夹！")
+            messagebox.showwarning("Warning", "Please select a video folder！")
             return
         if not self.pdf_folder_path or not os.path.exists(self.pdf_folder_path):
-            messagebox.showwarning("警告", "请先选择有效的PDF剧本文件夹！")
+            messagebox.showwarning("Warning", "Please select a script folder！")
             return
 
         # 清空之前的分类结果
         self.result_listbox.delete(0, tk.END)
-        self.classification_status_label.config(text="状态: 正在进行视频分类...")
+        self.classification_status_label.config(text="Status: Classifying...")
         self.btn_classify_videos.config(state=tk.DISABLED)  # 分类过程中禁用按钮
 
         # 在单独的线程中执行分类逻辑
@@ -187,17 +193,6 @@ class FileClassifierApp:
             return {"error": str(e), "traceback": error_traceback}
         print(result)
 
-        # for i, video_file in enumerate(video_files):
-        #     # 模拟耗时操作，例如：视频处理、ASR、文本对比
-        #     time.sleep(0.5)
-        #     try:
-        #         # 随机选择一个PDF作为匹配结果
-        #         import random
-        #         matched_pdf = random.choice(pdf_files)
-        #         classified_results.append(
-        #             f"视频: {video_file} -> 匹配剧本: {matched_pdf} (匹配度: {random.randint(70, 99)}%)")
-        #     except IndexError:
-        #         classified_results.append(f"视频: {video_file} -> 未找到可用剧本匹配")
 
         return result
 
@@ -209,12 +204,18 @@ class FileClassifierApp:
             results = future.result()  # 获取分类结果
             for item in results:
                 video, pdf = pathlib.Path(item[0]).name, pathlib.Path(item[1]).name
-                result_line = f"视频: {video} -> 匹配剧本: {pdf} "
+                result_line = f"Video: {video} -> Script: {pdf} "
                 self.result_listbox.insert(tk.END, result_line)
-            self.classification_status_label.config(text="状态: 分类完成！")
+            self.classification_status_label.config(text="Status: Done！")
         except Exception as e:
-            self.classification_status_label.config(text=f"状态: 分类出错！{e}")
-            messagebox.showerror("错误", f"视频分类过程中发生错误: {e}")
+            self.classification_status_label.config(text=f"Status: Error！{e}")
+            print("主线程捕获到异常:\n", traceback.format_exc())  # 打印到控制台
+            # 将异常信息写入到日志文件
+            with open("error.log", "a", encoding="utf8") as log_file:
+                log_file.write(f"Error occurred at {time.strftime('%Y-%m-%d %H:%M:%S')}:\n")
+                log_file.write(traceback.format_exc())
+                log_file.write("\n")
+            messagebox.showerror("Error", f"WOW: {e}")
         finally:
             self.btn_classify_videos.config(state=tk.NORMAL)  # 重新启用按钮
 
