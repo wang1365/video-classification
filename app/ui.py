@@ -6,6 +6,7 @@ from tkinter import filedialog, messagebox
 import os
 import time  # 用于模拟耗时操作
 from concurrent.futures import ThreadPoolExecutor  # 用于多线程处理
+from tkinter import ttk
 
 os.environ['PATH'] = os.environ['PATH'] + os.pathsep + "./_internal"
 
@@ -118,7 +119,25 @@ class FileClassifierApp:
         self.classification_result_label = tk.Label(self.classify_frame, text="Result: ")
         self.classification_result_label.pack(pady=5)
 
-        # 分类结果列表框
+        # 分类结果表格
+        self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
+        self.result_tree.heading('time', text='完成时间')
+        self.result_tree.heading('video', text='Video文件')
+        self.result_tree.heading('script', text='匹配Script')
+
+        # 设置列宽
+        self.result_tree.column('time', width=180)
+        self.result_tree.column('video', width=300)
+        self.result_tree.column('script', width=300)
+
+        # 滚动条
+        self.result_scrollbar = ttk.Scrollbar(self.classify_frame, orient="vertical", command=self.result_tree.yview)
+        self.result_tree.configure(yscrollcommand=self.result_scrollbar.set)
+
+        # 布局
+        self.result_tree.pack(side="left", fill="both", expand=True, pady=5)
+        self.result_scrollbar.pack(side="right", fill="y")
+
         self.result_list_scrollbar = tk.Scrollbar(self.classify_frame)
         self.result_list_scrollbar.pack(side="right", fill="y")
         self.result_listbox = tk.Listbox(self.classify_frame, width=60, height=20,
@@ -237,18 +256,19 @@ class FileClassifierApp:
         vfs = [os.path.join(self.video_folder_path, vf) for vf in video_files]
         pfs_info = extract_all_pdfs(pfs)
 
+        # 在_run_classification_logic方法中修改结果插入部分
         for vf in vfs:
             try:
                 result = main(vf, pfs_info)
-                result_line = f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} " + f"Video: {vf} -> Script: {result} "
-                self.result_listbox.insert(tk.END, result_line)
+                current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+                # 只显示文件名而不是完整路径
+                video_name = os.path.basename(vf)
+                script_name = os.path.basename(result) if result else "未匹配"
+                self.result_tree.insert('', 'end', values=(current_time, video_name, script_name))
             except Exception as e:
-                # 捕获任何异常，并格式化堆栈信息
                 error_traceback = traceback.format_exc()
-                print("子线程捕获到异常:\n", error_traceback)  # 打印到控制台
-                # 将异常信息返回，以便在主线程中处理
+                print("子线程捕获到异常:\n", error_traceback)
                 return {"error": str(e), "traceback": error_traceback}
-            print(result)
 
         return result
 
