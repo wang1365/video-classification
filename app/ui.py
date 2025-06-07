@@ -109,12 +109,16 @@ class FileClassifierApp:
         self.classify_frame = tk.LabelFrame(self.right_frame, text="Video Classification Result", padx=10, pady=10)
         self.classify_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        self.btn_classify_videos = tk.Button(self.classify_frame, text="Start >>",
-                                             command=self.start_video_classification)
-        self.btn_classify_videos.pack(pady=10)
+        # 创建按钮和状态标签的容器框架
+        self.status_frame = tk.Frame(self.classify_frame)
+        self.status_frame.pack(pady=10, anchor='w')  # 添加anchor='w'使整个容器靠左
 
-        self.classification_status_label = tk.Label(self.classify_frame, text="Status: Ready")
-        self.classification_status_label.pack(pady=5)
+        self.btn_classify_videos = tk.Button(self.status_frame, text="Start >>",
+                                             command=self.start_video_classification)
+        self.btn_classify_videos.pack(side="left", padx=5)
+
+        self.classification_status_label = tk.Label(self.status_frame, text="Status: Ready")
+        self.classification_status_label.pack(side="left", padx=5)
 
         # 分类结果表格
         self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
