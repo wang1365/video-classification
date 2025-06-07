@@ -122,7 +122,7 @@ class FileClassifierApp:
         self.btn_open_log = tk.Button(self.button_frame, text="Open Log", command=lambda: os.startfile('log.txt'))
         self.btn_open_log.pack(side="left", padx=5)
 
-        self.classification_status_label = tk.Label(self.button_frame, text="Status: Ready")
+        self.classification_status_label = tk.Label(self.button_frame, text="Status: Ready", fg="blue")
         self.classification_status_label.pack(side="left", padx=5)
 
         # 分类结果表格
@@ -296,9 +296,11 @@ class FileClassifierApp:
         # 在_run_classification_logic方法中修改结果插入部分
         for vf in vfs:
             try:
+                video_name = os.path.basename(vf)
+                self.classification_status_label.config(text=f"Status: Analyzing video {video_name}...")
+
                 result = main(vf, pfs_info)
                 current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-                video_name = os.path.basename(vf)
                 script_name = os.path.basename(result) if result else "未匹配"
                 self.result_tree.insert('', 'end', values=(current_time, video_name, script_name))
 
