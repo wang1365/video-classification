@@ -2,13 +2,18 @@
 
 
 a = Analysis(
-    ['app\\ui.py', 'app\\main.py'],
-    pathex=[],
+    ['app\\ui.py'],
+    pathex=['app\\main.py'],
     binaries=[],
     datas=[
         ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffmpeg.exe', '_internal'),
+        ('.\\venv\\Lib\\site-packages\\whisper', '_internal'),
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        'whisper',
+        'whisper.tokenizer',
+        'whisper.decoding',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
