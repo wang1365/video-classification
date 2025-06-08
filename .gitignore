@@ -192,4 +192,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-./Output
+Output/
