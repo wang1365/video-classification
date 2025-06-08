@@ -1,2 +1,2 @@
 
-pyinstaller ui.spec --clean
+pyinstaller app.spec --clean --noconfirm
