@@ -2,6 +2,7 @@ openai-whisper
 moviepy
 pydub
 python-docx
-scikit-learn
+scikit-learn==1.2.2
+numpy==1.25.0
 pyinstaller
 pdfplumber

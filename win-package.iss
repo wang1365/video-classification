@@ -47,7 +47,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\private\code\video-classification\build\ui\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\private\code\video-classification\dist\ui\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\private\code\video-classification\dist\ui\_internal\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
