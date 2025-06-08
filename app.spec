@@ -1,18 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(
-    ['app\\ui.py'],
-    pathex=['app\\main.py'],
+    ['app\\ui.py', 'app\\main.py'],
+    pathex=['D:\\private\\code\\video-classification'],
     binaries=[],
     datas=[
         ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffmpeg.exe', '_internal'),
-        ('.\\venv\\Lib\\site-packages\\whisper', '_internal'),
+        ('venv/Lib/site-packages/whisper/assets', 'whisper/assets'),
     ],
     hiddenimports=[
         'whisper',
-        'whisper.tokenizer',
-        'whisper.decoding',
+        'moviepy',
+        'pydub',
+        'docx',
+        'sklearn',
+        'numpy',
+        'pdfplumber'
     ],
     hookspath=[],
     hooksconfig={},
@@ -20,7 +23,6 @@ a = Analysis(
     excludes=[],
     noarchive=False,
     optimize=0,
-
 )
 pyz = PYZ(a.pure)
 
