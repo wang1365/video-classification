@@ -179,13 +179,17 @@ class FileClassifierApp:
 
         # 重定向标准输出到控制台
         class TextRedirector(object):
+            def __init__(self):
+                self.original_stdout = sys.stdout
+
             def write(self, str):
-                # 如果str是换行符，不做任何处理
-                if str == '\n':
-                    return
+                # 保留原始输出
+                self.original_stdout.write(str)
+                # 同时写入日志文件
                 with open('./log.txt', 'a', encoding="utf8") as f:
                     f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + str + '\n')
 
+        # 修改重定向方式
         sys.stdout = TextRedirector()
 
         # 存储当前选择的文件夹路径
@@ -346,3 +350,18 @@ app = FileClassifierApp(root)
 
 # 运行主循环
 root.mainloop()
+
+
+def closeEvent(self, event):
+    # 确保所有资源被释放
+    import os
+    import sys
+    if hasattr(self, 'process') and self.process:  # 如果有子进程
+        self.process.terminate()
+    # 清理临时文件
+    temp_files = ["temp_audio.wav"]  # 添加其他临时文件
+    for file in temp_files:
+        if os.path.exists(file):
+            os.remove(file)
+    # 强制退出
+    os._exit(0)

@@ -6,6 +6,8 @@ a = Analysis(
     binaries=[],
     datas=[
         ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffmpeg.exe', '_internal'),
+        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffplay.exe', '_internal'),
+        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffprobe.exe', '_internal'),
         ('venv/Lib/site-packages/whisper/assets', 'whisper/assets'),
     ],
     hiddenimports=[
@@ -36,7 +38,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,  # 将这里从True改为False
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

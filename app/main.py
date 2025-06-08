@@ -1,4 +1,5 @@
 import os
+import traceback
 
 import numpy
 import whisper
@@ -21,6 +22,8 @@ def extract_audio_from_mxf(video_path, output_audio_path="temp_audio.wav"):
         return output_audio_path
     except Exception as e:
         print(f"提取音频时出错: {e}")
+        error_traceback = traceback.format_exc()
+        print(f"提取音频时出错: {error_traceback}")
         return None
 
 
