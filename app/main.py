@@ -4,6 +4,7 @@ import traceback
 import numpy
 import whisper
 from docx import Document
+from faster_whisper import WhisperModel
 from moviepy import VideoFileClip
 import pdfplumber
 
@@ -29,16 +30,21 @@ def extract_audio_from_mxf(video_path, output_audio_path="temp_audio.wav"):
 
 def audio_to_text(audio_path, model_size="base"):
     """使用Whisper模型将音频转换为文本"""
-    try:
-        # 加载Whisper模型
-        model = whisper.load_model(model_size)
-        # 转录音频
-        result = model.transcribe(audio_path)
-        # 返回转录的文本
-        return result["text"]
-    except Exception as e:
-        print(f"音频转文本时出错: {e}")
-        return None
+    model = WhisperModel('base', device="cpu", compute_type="int8")
+    result = model.transcribe(audio_path)
+    print('========================>', result["text"])
+    # 返回转录的文本
+    return result["text"]
+    # try:
+    #     # 加载Whisper模型
+    #     model = whisper.load_model(model_size)
+    #     # 转录音频
+    #     result = model.transcribe(audio_path)
+    #     # 返回转录的文本
+    #     return result["text"]
+    # except Exception as e:
+    #     print(f"音频转文本时出错: {e}")
+    #     return None
 
 def extract_text_from_docx(docx_path):
     doc = Document(docx_path)
