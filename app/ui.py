@@ -15,122 +15,62 @@ os.environ['PATH'] = os.environ['PATH'] + os.pathsep + "./_internal"
 
 class FileClassifierApp:
     def __init__(self, master):
-        self.master = master
-        master.title("Video Classification Tool")
-        master.geometry("1400x700")  # 调整窗口大小以适应左右两部分
+        self.init_frame(master)
 
-        # 左右主框架
-        self.main_frame = tk.Frame(master)
-        self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        self.init_video_frame()
 
-        # 左侧部分 - 文件选择和列表
-        self.left_frame = tk.Frame(self.main_frame, bd=2, relief="groove")  # 添加边框
-        self.left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        self.init_pdf_frame()
 
-        # 右侧部分 - 视频分类和结果展示
-        self.right_frame = tk.Frame(self.main_frame, bd=2, relief="groove")  # 添加边框
-        self.right_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+        self.init_result_frame()
 
-        # --- 左侧功能区 ---
-        # 视频文件部分
-        self.video_frame = tk.LabelFrame(self.left_frame, text="Video", padx=10, pady=10)
-        self.video_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        self.video_frame.grid_rowconfigure(1, weight=1)  # 添加这行
-        self.video_frame.grid_columnconfigure(0, weight=1)  # 添加这行
+        self.init_log()
 
-        self.btn_select_video_folder = tk.Button(self.video_frame, text="Select Video Folder",
-                                                 command=self.select_video_folder)
+        # 存储当前选择的文件夹路径
+        self.video_folder_path = ""
+        self.pdf_folder_path = ""
 
-        self.btn_select_video_folder.grid(row=0, column=0, pady=5, sticky="w")
+        # 使用线程池来执行耗时操作，避免界面卡死
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
-        self.video_folder_label = tk.Label(self.video_frame, text="", anchor="w")
-        self.video_folder_label.grid(row=0, column=1, pady=5, sticky="w")
+    def init_log(self):
+        # log text增加滚动条
+        self.log_scrollbar = tk.Scrollbar(self.classify_frame)
+        self.log_scrollbar.pack(side="right", fill="y")
 
-        # 将btn_select_video_folder 和 video_folder_label 放置在同一行
-        # self.btn_select_video_folder.pack(side="left", padx=5)
+        # 重定向标准输出到控制台
+        class TextRedirector(object):
+            def __init__(self):
+                self.original_stdout = sys.stdout
 
-        # 视频文件列表框
-        self.video_list_scrollbar = tk.Scrollbar(self.video_frame)
-        # self.video_list_scrollbar.grid(row=0, column=1, pady=5)
-        self.video_listbox = tk.Listbox(self.video_frame, width=60, height=10,
-                                        yscrollcommand=self.video_list_scrollbar.set)
-        self.video_listbox.grid(row=1, column=0, columnspan=2, pady=5, sticky="nsew")
-        self.video_list_scrollbar.grid(row=1, column=2, columnspan=1, sticky="ns")  # 添加这行
-        self.video_list_scrollbar.config(command=self.video_listbox.yview)
+            def write(self, str):
+                # 保留原始输出
+                self.original_stdout.write(str)
+                # 同时写入日志文件
+                with open('./log.txt', 'a', encoding="utf8") as f:
+                    f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + str + '\n')
 
-        # 实现video_listbox的条目双击后打开视频文件
-        def open_video(event):
-            selected_index = self.video_listbox.curselection()
-            if selected_index:
-                selected_video = self.video_listbox.get(selected_index)
-                video_path = os.path.join(self.video_folder_path, selected_video)
-                if os.path.exists(video_path):
-                    os.startfile(video_path)
-                else:
-                    messagebox.showerror("Error", "Video file not found!")
-                    traceback.print_exc()
+        # 修改重定向方式
+        sys.stdout = TextRedirector()
 
-        self.video_listbox.bind("<Double-Button-1>", open_video)
-
-        # PDF文件部分
-        self.pdf_frame = tk.LabelFrame(self.left_frame, text="Script Files (PDF)", padx=10, pady=10)
-        self.pdf_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        self.pdf_frame.grid_rowconfigure(1, weight=1)  # 添加这行
-        self.pdf_frame.grid_columnconfigure(0, weight=1)  # 添加这行
-
-        self.btn_select_pdf_folder = tk.Button(self.pdf_frame, text="Select Script Folder",
-                                               command=self.select_pdf_folder)
-        self.btn_select_pdf_folder.grid(row=0, column=0, columnspan=1, pady=5, sticky="w")
-
-        self.pdf_folder_label = tk.Label(self.pdf_frame, text="", anchor="w")
-        self.pdf_folder_label.grid(row=0, column=1, columnspan=3, pady=5, sticky="w")
-
-        # PDF文件列表框
-        self.pdf_list_scrollbar = tk.Scrollbar(self.pdf_frame)
-        # self.pdf_list_scrollbar.pack(side="right", fill="y")
-        self.pdf_listbox = tk.Listbox(self.pdf_frame, width=60, height=10,
-                                      yscrollcommand=self.pdf_list_scrollbar.set)
-        self.pdf_listbox.grid(row=1, column=0, columnspan=3, pady=5, sticky="nsew")
-        self.pdf_list_scrollbar.grid(row=1, column=3, columnspan=1, sticky="ns")  # 添加这行
-        self.pdf_list_scrollbar.config(command=self.pdf_listbox.yview)
-
-        # 实现pdf_listbox的条目双击后打开pdf文件
-        def open_pdf(event):
-            selected_index = self.pdf_listbox.curselection()
-            if selected_index:
-                selected_pdf = self.pdf_listbox.get(selected_index)
-                pdf_path = os.path.join(self.pdf_folder_path, selected_pdf)
-                if os.path.exists(pdf_path):
-                    os.startfile(pdf_path)
-                else:
-                    messagebox.showerror("Error", "PDF file not found!")
-
-        self.pdf_listbox.bind("<Double-Button-1>", open_pdf)
-
+    def init_result_frame(self):
         # --- 右侧功能区 ---
         self.classify_frame = tk.LabelFrame(self.right_frame, text="Video Classification Result", padx=10, pady=10)
         self.classify_frame.pack(padx=10, pady=10, fill="both", expand=True)
-
         # 创建按钮和状态标签的容器框架
         self.button_frame = tk.Frame(self.classify_frame)
         self.button_frame.pack(pady=10, anchor='w')
-
         self.btn_classify_videos = tk.Button(self.button_frame, text="Start >>",
                                              command=self.start_video_classification)
         self.btn_classify_videos.pack(side="left", padx=5)
-
         self.btn_open_log = tk.Button(self.button_frame, text="Open Log", command=lambda: os.startfile('log.txt'))
         self.btn_open_log.pack(side="left", padx=5)
-
         self.classification_status_label = tk.Label(self.button_frame, text="Status: Ready", fg="blue")
         self.classification_status_label.pack(side="left", padx=5)
-
         # 分类结果表格
         self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
         self.result_tree.heading('time', text='Time')  # 完成时间 -> Time
         self.result_tree.heading('video', text='Video File')  # Video文件 -> Video File
         self.result_tree.heading('script', text='Matched Script')  # 匹配Script -> Matched Script
-
         # 设置列宽
         self.result_tree.column('time', width=180)
         self.result_tree.column('video', width=300)
@@ -157,15 +97,12 @@ class FileClassifierApp:
                         messagebox.showerror("Error", "Script file not found!")
 
         self.result_tree.bind('<Double-1>', on_tree_double_click)
-
         # 滚动条
         self.result_scrollbar = ttk.Scrollbar(self.classify_frame, orient="vertical", command=self.result_tree.yview)
         self.result_tree.configure(yscrollcommand=self.result_scrollbar.set)
-
         # 布局
         self.result_tree.pack(side="left", fill="both", expand=True, pady=5)
         self.result_scrollbar.pack(side="right", fill="y")
-
         self.result_list_scrollbar = tk.Scrollbar(self.classify_frame)
         self.result_list_scrollbar.pack(side="right", fill="y")
         self.result_listbox = tk.Listbox(self.classify_frame, width=60, height=20,
@@ -173,31 +110,89 @@ class FileClassifierApp:
         self.result_listbox.pack(pady=5, fill="both", expand=True)
         self.result_list_scrollbar.config(command=self.result_listbox.yview)
 
-        # log text增加滚动条
-        self.log_scrollbar = tk.Scrollbar(self.classify_frame)
-        self.log_scrollbar.pack(side="right", fill="y")
+    def init_pdf_frame(self):
+        # PDF文件部分
+        self.pdf_frame = tk.LabelFrame(self.left_frame, text="Script Files (PDF)", padx=10, pady=10)
+        self.pdf_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        self.pdf_frame.grid_rowconfigure(1, weight=1)  # 添加这行
+        self.pdf_frame.grid_columnconfigure(0, weight=1)  # 添加这行
+        self.btn_select_pdf_folder = tk.Button(self.pdf_frame, text="Select Script Folder",
+                                               command=self.select_pdf_folder)
+        self.btn_select_pdf_folder.grid(row=0, column=0, columnspan=1, pady=5, sticky="w")
+        self.pdf_folder_label = tk.Label(self.pdf_frame, text="", anchor="w")
+        self.pdf_folder_label.grid(row=0, column=1, columnspan=3, pady=5, sticky="w")
+        # PDF文件列表框
+        self.pdf_list_scrollbar = tk.Scrollbar(self.pdf_frame)
+        # self.pdf_list_scrollbar.pack(side="right", fill="y")
+        self.pdf_listbox = tk.Listbox(self.pdf_frame, width=60, height=10,
+                                      yscrollcommand=self.pdf_list_scrollbar.set)
+        self.pdf_listbox.grid(row=1, column=0, columnspan=3, pady=5, sticky="nsew")
+        self.pdf_list_scrollbar.grid(row=1, column=3, columnspan=1, sticky="ns")  # 添加这行
+        self.pdf_list_scrollbar.config(command=self.pdf_listbox.yview)
 
-        # 重定向标准输出到控制台
-        class TextRedirector(object):
-            def __init__(self):
-                self.original_stdout = sys.stdout
+        # 实现pdf_listbox的条目双击后打开pdf文件
+        def open_pdf(event):
+            selected_index = self.pdf_listbox.curselection()
+            if selected_index:
+                selected_pdf = self.pdf_listbox.get(selected_index)
+                pdf_path = os.path.join(self.pdf_folder_path, selected_pdf)
+                if os.path.exists(pdf_path):
+                    os.startfile(pdf_path)
+                else:
+                    messagebox.showerror("Error", "PDF file not found!")
 
-            def write(self, str):
-                # 保留原始输出
-                self.original_stdout.write(str)
-                # 同时写入日志文件
-                with open('./log.txt', 'a', encoding="utf8") as f:
-                    f.write(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + str + '\n')
+        self.pdf_listbox.bind("<Double-Button-1>", open_pdf)
 
-        # 修改重定向方式
-        sys.stdout = TextRedirector()
+    def init_video_frame(self):
+        # --- 左侧功能区 ---
+        # 视频文件部分
+        self.video_frame = tk.LabelFrame(self.left_frame, text="Video", padx=10, pady=10)
+        self.video_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        self.video_frame.grid_rowconfigure(1, weight=1)  # 添加这行
+        self.video_frame.grid_columnconfigure(0, weight=1)  # 添加这行
+        self.btn_select_video_folder = tk.Button(self.video_frame, text="Select Video Folder",
+                                                 command=self.select_video_folder)
+        self.btn_select_video_folder.grid(row=0, column=0, pady=5, sticky="w")
+        self.video_folder_label = tk.Label(self.video_frame, text="", anchor="w")
+        self.video_folder_label.grid(row=0, column=1, pady=5, sticky="w")
+        # 将btn_select_video_folder 和 video_folder_label 放置在同一行
+        # self.btn_select_video_folder.pack(side="left", padx=5)
+        # 视频文件列表框
+        self.video_list_scrollbar = tk.Scrollbar(self.video_frame)
+        # self.video_list_scrollbar.grid(row=0, column=1, pady=5)
+        self.video_listbox = tk.Listbox(self.video_frame, width=60, height=10,
+                                        yscrollcommand=self.video_list_scrollbar.set)
+        self.video_listbox.grid(row=1, column=0, columnspan=2, pady=5, sticky="nsew")
+        self.video_list_scrollbar.grid(row=1, column=2, columnspan=1, sticky="ns")  # 添加这行
+        self.video_list_scrollbar.config(command=self.video_listbox.yview)
 
-        # 存储当前选择的文件夹路径
-        self.video_folder_path = ""
-        self.pdf_folder_path = ""
+        # 实现video_listbox的条目双击后打开视频文件
+        def open_video(event):
+            selected_index = self.video_listbox.curselection()
+            if selected_index:
+                selected_video = self.video_listbox.get(selected_index)
+                video_path = os.path.join(self.video_folder_path, selected_video)
+                if os.path.exists(video_path):
+                    os.startfile(video_path)
+                else:
+                    messagebox.showerror("Error", "Video file not found!")
+                    traceback.print_exc()
 
-        # 使用线程池来执行耗时操作，避免界面卡死
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        self.video_listbox.bind("<Double-Button-1>", open_video)
+
+    def init_frame(self, master):
+        self.master = master
+        master.title("Video Classification Tool")
+        master.geometry("1400x700")  # 调整窗口大小以适应左右两部分
+        # 左右主框架
+        self.main_frame = tk.Frame(master)
+        self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        # 左侧部分 - 文件选择和列表
+        self.left_frame = tk.Frame(self.main_frame, bd=2, relief="groove")  # 添加边框
+        self.left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        # 右侧部分 - 视频分类和结果展示
+        self.right_frame = tk.Frame(self.main_frame, bd=2, relief="groove")  # 添加边框
+        self.right_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
     def select_video_folder(self):
         folder_selected = filedialog.askdirectory()
