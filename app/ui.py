@@ -109,22 +109,6 @@ class FileClassifierApp:
         self.result_listbox.pack(pady=5, fill="both", expand=True)
         self.result_list_scrollbar.config(command=self.result_listbox.yview)
 
-    def init_word_frame(self):
-        # PDF文件部分 - 高度比例为1
-        self.word_frame = tk.LabelFrame(self.left_frame, text="Script Files (PDF)", padx=10, pady=10)
-        self.word_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        self.word_frame.grid_rowconfigure(1, weight=1)
-        self.word_frame.grid_columnconfigure(0, weight=1)
-
-        # 修改为选择单个PDF文件
-        self.btn_select_word = tk.Button(self.word_frame, text="Select PDF File",
-                                         command=self.select_word_file)
-        self.btn_select_word.grid(row=0, column=0, pady=5, sticky="w")
-
-        # 显示选中的PDF文件路径
-        self.word_file_label = tk.Label(self.word_frame, text="No PDF selected", anchor="w", wraplength=400)
-        self.word_file_label.grid(row=1, column=0, pady=5, sticky="w")
-
     def select_word_file(self):
         file_selected = filedialog.askopenfilename(
             title="Select WORD File",
@@ -140,62 +124,72 @@ class FileClassifierApp:
 
         # 实现pdf_listbox的条目双击后打开pdf文件
 
-    def init_video_frame(self):
-        # --- 左侧功能区 ---
-        # 视频文件部分 - 高度比例为2
-        self.video_frame = tk.LabelFrame(self.left_frame, text="Video", padx=10, pady=10)
-        # 初始化frame时设置不同的权重
-        self.word_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        self.video_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        self.video_frame.grid_rowconfigure(1, weight=5)  # 修改weight为2
-        self.video_frame.grid_columnconfigure(0, weight=1)  # 添加这行
-        self.btn_select_video_folder = tk.Button(self.video_frame, text="Select Video Folder",
-                                                 command=self.select_video_folder)
-        self.btn_select_video_folder.grid(row=0, column=0, pady=5, sticky="w")
-        self.video_folder_label = tk.Label(self.video_frame, text="", anchor="w")
-        self.video_folder_label.grid(row=0, column=1, pady=5, sticky="w")
-        # 将btn_select_video_folder 和 video_folder_label 放置在同一行
-        # self.btn_select_video_folder.pack(side="left", padx=5)
-        # 视频文件列表框
-        self.video_list_scrollbar = tk.Scrollbar(self.video_frame)
-        # self.video_list_scrollbar.grid(row=0, column=1, pady=5)
-        self.video_listbox = tk.Listbox(self.video_frame, width=60, height=10,
-                                        yscrollcommand=self.video_list_scrollbar.set)
-        self.video_listbox.grid(row=1, column=0, columnspan=2, pady=5, sticky="nsew")
-        self.video_list_scrollbar.grid(row=1, column=2, columnspan=1, sticky="ns")  # 添加这行
-        self.video_list_scrollbar.config(command=self.video_listbox.yview)
-
-        # 实现video_listbox的条目双击后打开视频文件
-        def open_video(event):
-            selected_index = self.video_listbox.curselection()
-            if selected_index:
-                selected_video = self.video_listbox.get(selected_index)
-                video_path = os.path.join(self.video_folder_path, selected_video)
-                if os.path.exists(video_path):
-                    os.startfile(video_path)
-                else:
-                    messagebox.showerror("Error", "Video file not found!")
-                    traceback.print_exc()
-
-        self.video_listbox.bind("<Double-Button-1>", open_video)
 
     def init_frame(self, master):
         self.master = master
         master.title("Video Classification Tool")
-        master.geometry("1400x700")  # 调整窗口大小以适应左右两部分
+        master.geometry("1400x700")
         # 左右主框架
         self.main_frame = tk.Frame(master)
         self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
-        # 左侧部分 - 文件选择和列表 (移除relief="groove"参数)
-        self.left_frame = tk.Frame(self.main_frame)  # 移除边框
+        # 左侧部分 - 文件选择和列表
+        self.left_frame = tk.Frame(self.main_frame)
         self.left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
-        # 右侧部分 - 视频分类和结果展示 (移除relief="groove"参数)
-        self.right_frame = tk.Frame(self.main_frame)  # 移除边框
+        # 右侧部分 - 视频分类和结果展示
+        self.right_frame = tk.Frame(self.main_frame)
         self.right_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
-        # 初始化frame的顺序对调
-        self.init_word_frame()  # 先初始化PDF frame
-        self.init_video_frame()  # 再初始化video frame
+        # 初始化合并后的文件选择框架
+        self.init_file_selection_frame()
+
+    def init_file_selection_frame(self):
+        # 合并后的文件选择框架
+        self.file_frame = tk.LabelFrame(self.left_frame, text="Files Selection", padx=10, pady=10)
+        self.file_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        # file frame边框设置为蓝色虚线
+        self.file_frame.config(fg="blue", bd=2, relief="groove")
+
+        # PDF文件部分
+        self.word_section = tk.Frame(self.file_frame)
+        self.word_section.pack(fill="x", pady=5)
+
+        self.btn_select_word = tk.Button(self.word_section, text="Select Script File",
+                                         command=self.select_word_file)
+        self.btn_select_word.grid(row=0, column=0, padx=5)
+        self.btn_select_word.grid_configure(sticky="w")
+
+        self.word_file_label = tk.Label(self.word_section, text="No Word selected", anchor="w")
+        self.word_file_label.grid(row=1, column=0, padx=5)
+        # word_file_label 颜色设置为蓝色，下划线，鼠标为cursor，点击后可以打开文件
+        self.word_file_label.config(fg="blue", underline=True, cursor="hand2")
+
+        def open_file(event):
+            os.startfile(self.word_file_label.cget("text"))
+        self.word_file_label.bind("<Button-1>", open_file)
+
+        # 分隔线
+        ttk.Separator(self.file_frame, orient="horizontal").pack(fill="x", pady=10)
+
+        # 视频文件部分
+        self.video_section = tk.Frame(self.file_frame)
+        self.video_section.pack(fill="x", pady=5)
+        self.btn_select_video_folder = tk.Button(self.video_section, text="Select Video Folder",
+                                               command=self.select_video_folder)
+        self.btn_select_video_folder.pack(side="left", padx=5)
+        self.video_folder_label = tk.Label(self.video_section, text="", anchor="w")
+        self.video_folder_label.pack(side="left", padx=5)
+
+        # 视频文件列表框
+        self.video_list_scrollbar = tk.Scrollbar(self.file_frame)
+        self.video_listbox = tk.Listbox(self.file_frame, width=60, height=10,
+                                      yscrollcommand=self.video_list_scrollbar.set)
+        self.video_listbox.pack(fill="both", expand=True, pady=5)
+        self.video_list_scrollbar.pack(side="right", fill="y")
+        self.video_list_scrollbar.config(command=self.video_listbox.yview)
+
+        # 视频文件双击事件
+        open_file = lambda e: os.startfile(os.path.join(self.video_folder_path, self.video_listbox.get(tk.ACTIVE)))
+        self.video_listbox.bind("<Double-Button-1>", open_file)
 
     def select_video_folder(self):
         folder_selected = filedialog.askdirectory()
@@ -363,3 +357,15 @@ def closeEvent(self, event):
             os.remove(file)
     # 强制退出
     os._exit(0)
+
+    def open_file(self, event, folder_path):
+        selected_index = self.video_listbox.curselection()
+        if selected_index:
+            selected_file = self.video_listbox.get(selected_index)
+            file_path = os.path.join(folder_path, selected_file)
+            if os.path.exists(file_path):
+                os.startfile(file_path)
+            else:
+                messagebox.showerror("Error", "File not found!")
+                traceback.print_exc()
+                os._exit(0)
