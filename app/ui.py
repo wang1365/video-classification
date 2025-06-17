@@ -109,62 +109,43 @@ class FileClassifierApp:
         self.result_listbox.pack(pady=5, fill="both", expand=True)
         self.result_list_scrollbar.config(command=self.result_listbox.yview)
 
-    def init_pdf_frame(self):
+    def init_word_frame(self):
         # PDF文件部分 - 高度比例为1
-        self.pdf_frame = tk.LabelFrame(self.left_frame, text="Script Files (PDF)", padx=10, pady=10)
-        self.pdf_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        self.pdf_frame.grid_rowconfigure(1, weight=1)
-        self.pdf_frame.grid_columnconfigure(0, weight=1)
+        self.word_frame = tk.LabelFrame(self.left_frame, text="Script Files (PDF)", padx=10, pady=10)
+        self.word_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        self.word_frame.grid_rowconfigure(1, weight=1)
+        self.word_frame.grid_columnconfigure(0, weight=1)
 
         # 修改为选择单个PDF文件
-        self.btn_select_pdf = tk.Button(self.pdf_frame, text="Select PDF File",
-                                      command=self.select_pdf_file)
-        self.btn_select_pdf.grid(row=0, column=0, pady=5, sticky="w")
+        self.btn_select_word = tk.Button(self.word_frame, text="Select PDF File",
+                                         command=self.select_word_file)
+        self.btn_select_word.grid(row=0, column=0, pady=5, sticky="w")
 
         # 显示选中的PDF文件路径
-        self.pdf_file_label = tk.Label(self.pdf_frame, text="No PDF selected", anchor="w", wraplength=400)
-        self.pdf_file_label.grid(row=1, column=0, pady=5, sticky="w")
+        self.word_file_label = tk.Label(self.word_frame, text="No PDF selected", anchor="w", wraplength=400)
+        self.word_file_label.grid(row=1, column=0, pady=5, sticky="w")
 
-    def select_pdf_file(self):
+    def select_word_file(self):
         file_selected = filedialog.askopenfilename(
-            title="Select PDF File",
-            filetypes=[("PDF Files", "*.pdf")]
+            title="Select WORD File",
+            filetypes=[("WORD Files", "*.docx")]
         )
         if file_selected:
             self.pdf_folder_path = os.path.dirname(file_selected)  # 保留文件夹路径
-            self.pdf_file_label.config(text=file_selected)
+            self.word_file_label.config(text=file_selected)
             # 更新PDF信息
-            self._update_pdf_info(file_selected)
+            self._update_word_info(file_selected)
 
-        self.pdf_folder_label.grid(row=0, column=1, columnspan=3, pady=5, sticky="w")
-        # PDF文件列表框
-        self.pdf_list_scrollbar = tk.Scrollbar(self.pdf_frame)
-        # self.pdf_list_scrollbar.pack(side="right", fill="y")
-        self.pdf_listbox = tk.Listbox(self.pdf_frame, width=60, height=10,
-                                      yscrollcommand=self.pdf_list_scrollbar.set)
-        self.pdf_listbox.grid(row=1, column=0, columnspan=3, pady=5, sticky="nsew")
-        self.pdf_list_scrollbar.grid(row=1, column=3, columnspan=1, sticky="ns")  # 添加这行
-        self.pdf_list_scrollbar.config(command=self.pdf_listbox.yview)
+        self.word_folder_label.grid(row=0, column=1, columnspan=3, pady=5, sticky="w")
 
         # 实现pdf_listbox的条目双击后打开pdf文件
-        def open_pdf(event):
-            selected_index = self.pdf_listbox.curselection()
-            if selected_index:
-                selected_pdf = self.pdf_listbox.get(selected_index)
-                pdf_path = os.path.join(self.pdf_folder_path, selected_pdf)
-                if os.path.exists(pdf_path):
-                    os.startfile(pdf_path)
-                else:
-                    messagebox.showerror("Error", "PDF file not found!")
-
-        self.pdf_listbox.bind("<Double-Button-1>", open_pdf)
 
     def init_video_frame(self):
         # --- 左侧功能区 ---
         # 视频文件部分 - 高度比例为2
         self.video_frame = tk.LabelFrame(self.left_frame, text="Video", padx=10, pady=10)
         # 初始化frame时设置不同的权重
-        self.pdf_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        self.word_frame.pack(padx=10, pady=10, fill="both", expand=True)
         self.video_frame.pack(padx=10, pady=10, fill="both", expand=True)
         self.video_frame.grid_rowconfigure(1, weight=5)  # 修改weight为2
         self.video_frame.grid_columnconfigure(0, weight=1)  # 添加这行
@@ -205,15 +186,15 @@ class FileClassifierApp:
         # 左右主框架
         self.main_frame = tk.Frame(master)
         self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
-        # 左侧部分 - 文件选择和列表
-        self.left_frame = tk.Frame(self.main_frame, bd=2, relief="groove")  # 添加边框
+        # 左侧部分 - 文件选择和列表 (移除relief="groove"参数)
+        self.left_frame = tk.Frame(self.main_frame)  # 移除边框
         self.left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
-        # 右侧部分 - 视频分类和结果展示
-        self.right_frame = tk.Frame(self.main_frame, bd=2, relief="groove")  # 添加边框
+        # 右侧部分 - 视频分类和结果展示 (移除relief="groove"参数)
+        self.right_frame = tk.Frame(self.main_frame)  # 移除边框
         self.right_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
 
         # 初始化frame的顺序对调
-        self.init_pdf_frame()  # 先初始化PDF frame
+        self.init_word_frame()  # 先初始化PDF frame
         self.init_video_frame()  # 再初始化video frame
 
     def select_video_folder(self):
