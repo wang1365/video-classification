@@ -1,14 +1,13 @@
-import pathlib
+import os
 import sys
+import time  # 用于模拟耗时操作
 import tkinter as tk
 import traceback
-from tkinter import filedialog, messagebox
-import os
-import time  # 用于模拟耗时操作
 from concurrent.futures import ThreadPoolExecutor  # 用于多线程处理
+from tkinter import filedialog, messagebox
 from tkinter import ttk
-
-from app.main import extract_text_from_pdf
+from app.main import main
+from app.word import parse_word_document
 
 os.environ['PATH'] = os.environ['PATH'] + os.pathsep + "./_internal"
 
@@ -103,7 +102,6 @@ class FileClassifierApp:
         self.word_frame.grid_rowconfigure(0, weight=1)
         self.word_frame.grid_columnconfigure(0, weight=1)
 
-
         # 添加双击事件处理
         def on_tree_double_click(event):
             item = self.result_tree.identify('item', event.x, event.y)
@@ -118,7 +116,7 @@ class FileClassifierApp:
                     else:
                         messagebox.showerror("Error", "Video file not found!")
                 elif column == '#3' and values[2]:  # script列
-                    #self.word_text 设置文本为self.word[values[2]]
+                    # self.word_text 设置文本为self.word[values[2]]
                     self.word_text.config(state='normal')
                     self.word_text.delete('1.0', 'end')
                     self.word_text.insert('1.0', self.word[values[2]])
@@ -129,6 +127,7 @@ class FileClassifierApp:
                     #     os.startfile(script_path)
                     # else:
                     #     messagebox.showerror("Error", "Script file not found!")
+
         def on_tree_single_click(event):
             item = self.result_tree.identify('item', event.x, event.y)
             if item:
@@ -148,7 +147,6 @@ class FileClassifierApp:
         if file_selected:
             self.pdf_folder_path = os.path.dirname(file_selected)  # 保留文件夹路径
             self.word_file_label.config(text=file_selected)
-
 
     def init_frame(self, master):
         self.master = master
@@ -183,10 +181,11 @@ class FileClassifierApp:
         self.word_file_label = tk.Label(self.word_section, text="No Word selected", anchor="w")
         self.word_file_label.grid(row=1, column=0, padx=5)
         # word_file_label 颜色设置为蓝色，下划线，鼠标为cursor，点击后可以打开文件
-        self.word_file_label.config(fg="blue", underline=True, cursor="hand2",wraplength=400, justify="left")
+        self.word_file_label.config(fg="blue", underline=True, cursor="hand2", wraplength=400, justify="left")
 
         def open_file(event):
             os.startfile(self.word_file_label.cget("text"))
+
         self.word_file_label.bind("<Button-1>", open_file)
 
         # 分隔线
@@ -196,7 +195,7 @@ class FileClassifierApp:
         self.video_section = tk.Frame(self.file_frame)
         self.video_section.pack(fill="x", pady=5)
         self.btn_select_video_folder = tk.Button(self.video_section, text="Select Video Folder",
-                                               command=self.select_video_folder)
+                                                 command=self.select_video_folder)
         self.btn_select_video_folder.pack(side="left", padx=5)
         self.video_folder_label = tk.Label(self.video_section, text="", anchor="w")
         self.video_folder_label.pack(side="left", padx=5)
@@ -207,7 +206,7 @@ class FileClassifierApp:
 
         self.video_list_scrollbar = tk.Scrollbar(self.video_listbox_frame)
         self.video_listbox = tk.Listbox(self.video_listbox_frame, width=60, height=10,
-                                      yscrollcommand=self.video_list_scrollbar.set)
+                                        yscrollcommand=self.video_list_scrollbar.set)
 
         # 修改布局方式为grid
         self.video_listbox.grid(row=0, column=0, sticky="nsew")
@@ -297,10 +296,8 @@ class FileClassifierApp:
         if not word_file:
             return ["没有找到剧本文件进行分类。"]
 
-        from app.main import extract_text_from_pdf, main
         vfs = [os.path.join(self.video_folder_path, vf) for vf in video_files]
 
-        from word import parse_word_document
         self.word = parse_word_document(word_file)
 
         # 在_run_classification_logic方法中修改结果插入部分
@@ -361,7 +358,6 @@ root.mainloop()
 def closeEvent(self, event):
     # 确保所有资源被释放
     import os
-    import sys
     if hasattr(self, 'process') and self.process:  # 如果有子进程
         self.process.terminate()
     # 清理临时文件

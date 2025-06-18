@@ -1,13 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 a = Analysis(
-    ['app\\ui.py', 'app\\main.py', 'app\\word.py'],
+    ['app\\ui.py', 'app\\main.py', 'app\\word.py'],  # Make sure word.py is included
     pathex=['D:\\private\\code\\video-classification'],
     binaries=[],
     datas=[
-        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffmpeg.exe', '_internal'),
-        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffplay.exe', '_internal'),
-        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffprobe.exe', '_internal'),
+        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffmpeg.exe', '.'),
+        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffplay.exe', '.'),
+        ('D:\\applications\\ffmpeg-7.1.1-full_build\\bin\\ffprobe.exe', '.'),
         ('venv/Lib/site-packages/whisper/assets', 'whisper/assets'),
     ],
     hiddenimports=[
@@ -16,7 +16,7 @@ a = Analysis(
         'pydub',
         'docx',
         'sklearn',
-        'numpy'
+        'numpy',
     ],
     hookspath=[],
     hooksconfig={},

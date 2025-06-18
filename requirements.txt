@@ -5,5 +5,3 @@ python-docx
 scikit-learn==1.2.2
 numpy==1.25.0
 pyinstaller
-pdfplumber
-faster_whisper
