@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 a = Analysis(
-    ['app\\ui.py', 'app\\main.py'],
+    ['app\\ui.py', 'app\\main.py', 'app\\word.py'],
     pathex=['D:\\private\\code\\video-classification'],
     binaries=[],
     datas=[
@@ -16,8 +16,7 @@ a = Analysis(
         'pydub',
         'docx',
         'sklearn',
-        'numpy',
-        'pdfplumber'
+        'numpy'
     ],
     hookspath=[],
     hooksconfig={},

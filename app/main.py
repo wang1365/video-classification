@@ -3,11 +3,9 @@ import traceback
 
 import numpy
 import whisper
-from docx import Document
-from faster_whisper import WhisperModel
 from moviepy import VideoFileClip
-import pdfplumber
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 def extract_audio_from_mxf(video_path, output_audio_path="temp_audio.wav"):
@@ -46,40 +44,11 @@ def audio_to_text(audio_path, model_size="base"):
         print(f"音频转文本时出错: {e}")
         return None
 
-def extract_text_from_docx(docx_path):
-    doc = Document(docx_path)
-    full_text = []
-    for para in doc.paragraphs:
-        full_text.append(para.text)
-    return '\n'.join(full_text)
-
-def extract_text_from_pdf(pdf_path):
-    full_text = []
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text()
-            if text:
-                full_text.append(text)
-    return '\n'.join(full_text)
-
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 def calculate_cosine_similarity(text_list):
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(text_list)
-    return cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]) # 比较第一个文本与其他文本
-
-
-def extract_all_pdfs(pdfs):
-    result = {}
-    for pdf in pdfs:
-        print(f"pdf: {pdf}")
-        text = extract_text_from_pdf(pdf)
-        # print(f"text: {text}")
-        result[pdf] = text
-    return result
+    return cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:])  # 比较第一个文本与其他文本
 
 
 def main(video_path, word_info, model_size="base"):
@@ -103,7 +72,6 @@ def main(video_path, word_info, model_size="base"):
     if os.path.exists(audio_path):
         os.remove(audio_path)
 
-
     # 打印转录的文本
     texts = [transcription]
     texts.extend(word_info.values())
@@ -118,6 +86,7 @@ def main(video_path, word_info, model_size="base"):
     # 打印最大相似度的脚本
     print(f"最大相似度: {max_similarity}, 对应的脚本: {list(word_info.keys())[max_index][:1000]}")
     return list(word_info.keys())[max_index]
+
 
 if __name__ == "__main__":
     # 使用示例
