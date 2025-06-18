@@ -87,8 +87,17 @@ class FileClassifierApp:
         self.result_scrollbar.pack(side="right", fill="y")
 
         # 下面增加一个文本编辑框word_text，只读模式
-        self.word_text = tk.Text(self.classify_frame, height=10, width=60, state='disabled')
-        self.word_text.pack(side="top", fill="both", expand=True, pady=5)  # 改为side="top"
+        self.word_frame = tk.Frame(self.classify_frame)
+        self.word_frame.pack(side="top", fill="both", expand=True, pady=5)  # 改为side="top"
+
+        self.word_text = tk.Text(self.word_frame, height=20, width=200, state='disabled')
+        self.word_text_scrollbar = ttk.Scrollbar(self.word_frame, orient="vertical", command=self.word_text.yview)
+        self.word_text.configure(yscrollcommand=self.word_text_scrollbar.set)  # 添加这行配置关联
+
+        self.word_text.grid(row=0, column=0, sticky="nsew")
+        self.word_text_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.word_frame.grid_rowconfigure(0, weight=1)
+        self.word_frame.grid_columnconfigure(0, weight=1)
 
 
         # 添加双击事件处理
@@ -203,7 +212,6 @@ class FileClassifierApp:
         # 配置frame的grid行列权重
         self.video_listbox_frame.grid_rowconfigure(0, weight=1)
         self.video_listbox_frame.grid_columnconfigure(0, weight=1)
-
 
         # 视频文件双击事件
         open_file = lambda e: os.startfile(os.path.join(self.video_folder_path, self.video_listbox.get(tk.ACTIVE)))
