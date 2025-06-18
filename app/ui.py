@@ -35,10 +35,6 @@ class FileClassifierApp:
         self.executor = ThreadPoolExecutor(max_workers=1)
 
     def init_log(self):
-        # log text增加滚动条
-        self.log_scrollbar = tk.Scrollbar(self.classify_frame)
-        self.log_scrollbar.pack(side="right", fill="y")
-
         # 重定向标准输出到控制台
         class TextRedirector(object):
             def __init__(self):
@@ -69,8 +65,11 @@ class FileClassifierApp:
         self.btn_open_log.pack(side="left", padx=5)
         self.classification_status_label = tk.Label(self.button_frame, text="Status: Ready", fg="blue")
         self.classification_status_label.pack(side="left", padx=5)
+
         # 分类结果表格
-        self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
+        self.result_tree_frame = tk.Frame(self.classify_frame)
+        self.result_tree_frame.pack(side="top", fill="both", expand=True, pady=5)
+        self.result_tree = ttk.Treeview(self.result_tree_frame, columns=('time', 'video', 'script'), show='headings')
         self.result_tree.heading('time', text='Time')  # 完成时间 -> Time
         self.result_tree.heading('video', text='Video File')  # Video文件 -> Video File
         self.result_tree.heading('script', text='Matched Chapter')  # 匹配Script -> Matched Script
@@ -80,11 +79,16 @@ class FileClassifierApp:
         self.result_tree.column('script', width=300)
 
         # 滚动条
-        self.result_scrollbar = ttk.Scrollbar(self.classify_frame, orient="vertical", command=self.result_tree.yview)
+        self.result_scrollbar = ttk.Scrollbar(self.result_tree_frame, orient="vertical", command=self.result_tree.yview)
         self.result_tree.configure(yscrollcommand=self.result_scrollbar.set)
         # 布局
-        self.result_tree.pack(side="top", fill="both", expand=True, pady=5)  # 改为side="top"
-        self.result_scrollbar.pack(side="right", fill="y")
+        # self.result_tree.pack(side="top", fill="both", expand=True, pady=5)  # 改为side="top"
+        # self.result_scrollbar.pack(side="right", fill="y")
+
+        self.result_tree.grid(row=0, column=0, sticky="nsew")
+        self.result_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.result_tree.grid_rowconfigure(0, weight=1)
+        self.result_scrollbar.grid_columnconfigure(0, weight=1)
 
         # 下面增加一个文本编辑框word_text，只读模式
         self.word_frame = tk.Frame(self.classify_frame)
