@@ -49,6 +49,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "D:\private\code\video-classification\dist\ui\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\private\code\video-classification\dist\ui\_internal\*"; DestDir: "{app}\_internal\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\private\code\video-classification\dist\ui\_internal\ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
