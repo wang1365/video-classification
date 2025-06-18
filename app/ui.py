@@ -195,10 +195,15 @@ class FileClassifierApp:
         self.video_list_scrollbar = tk.Scrollbar(self.video_listbox_frame)
         self.video_listbox = tk.Listbox(self.video_listbox_frame, width=60, height=10,
                                       yscrollcommand=self.video_list_scrollbar.set)
-        self.video_listbox.pack(fill="both", expand=True, pady=5)
-        self.video_list_scrollbar.pack(side="right", fill="y")
 
-        # self.video_list_scrollbar.config(command=self.video_listbox.yview)
+        # 修改布局方式为grid
+        self.video_listbox.grid(row=0, column=0, sticky="nsew")
+        self.video_list_scrollbar.grid(row=0, column=1, sticky="ns")
+
+        # 配置frame的grid行列权重
+        self.video_listbox_frame.grid_rowconfigure(0, weight=1)
+        self.video_listbox_frame.grid_columnconfigure(0, weight=1)
+
 
         # 视频文件双击事件
         open_file = lambda e: os.startfile(os.path.join(self.video_folder_path, self.video_listbox.get(tk.ACTIVE)))
