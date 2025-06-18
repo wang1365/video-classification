@@ -23,6 +23,7 @@ class FileClassifierApp:
         # self.init_video_frame()
         # self.init_pdf_frame()
 
+        self.init_file_selection_frame()
         self.init_result_frame()
         self.init_log()
 
@@ -57,6 +58,7 @@ class FileClassifierApp:
         # --- 右侧功能区 ---
         self.classify_frame = tk.LabelFrame(self.right_frame, text="Video Classification Result", padx=10, pady=10)
         self.classify_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        self.classify_frame.config(fg="blue", bd=2, relief="groove")
         # 创建按钮和状态标签的容器框架
         self.button_frame = tk.Frame(self.classify_frame)
         self.button_frame.pack(pady=10, anchor='w')
@@ -77,10 +79,16 @@ class FileClassifierApp:
         self.result_tree.column('video', width=300)
         self.result_tree.column('script', width=300)
 
+        # 滚动条
+        self.result_scrollbar = ttk.Scrollbar(self.classify_frame, orient="vertical", command=self.result_tree.yview)
+        self.result_tree.configure(yscrollcommand=self.result_scrollbar.set)
+        # 布局
+        self.result_tree.pack(side="top", fill="both", expand=True, pady=5)  # 改为side="top"
+        self.result_scrollbar.pack(side="right", fill="y")
+
         # 下面增加一个文本编辑框word_text，只读模式
-        # 点击result_tree的一行时，在这个word_text中展示result_tree这一行对应的script列的信息
         self.word_text = tk.Text(self.classify_frame, height=10, width=60, state='disabled')
-        self.word_text.pack(side="left", fill="both", expand=True, pady=5)
+        self.word_text.pack(side="top", fill="both", expand=True, pady=5)  # 改为side="top"
 
 
         # 添加双击事件处理
@@ -108,20 +116,16 @@ class FileClassifierApp:
                     #     os.startfile(script_path)
                     # else:
                     #     messagebox.showerror("Error", "Script file not found!")
+        def on_tree_single_click(event):
+            item = self.result_tree.identify('item', event.x, event.y)
+            if item:
+                values = self.result_tree.item(item, 'values')
+                self.word_text.config(state='normal')
+                self.word_text.delete('1.0', 'end')
+                self.word_text.insert('1.0', self.word[values[2]])
 
         self.result_tree.bind('<Double-1>', on_tree_double_click)
-        # 滚动条
-        self.result_scrollbar = ttk.Scrollbar(self.classify_frame, orient="vertical", command=self.result_tree.yview)
-        self.result_tree.configure(yscrollcommand=self.result_scrollbar.set)
-        # 布局
-        self.result_tree.pack(side="left", fill="both", expand=True, pady=5)
-        self.result_scrollbar.pack(side="right", fill="y")
-        self.result_list_scrollbar = tk.Scrollbar(self.classify_frame)
-        self.result_list_scrollbar.pack(side="right", fill="y")
-        self.result_listbox = tk.Listbox(self.classify_frame, width=60, height=20,
-                                         yscrollcommand=self.result_list_scrollbar.set)
-        self.result_listbox.pack(pady=5, fill="both", expand=True)
-        self.result_list_scrollbar.config(command=self.result_listbox.yview)
+        self.result_tree.bind('<Button-1>', on_tree_single_click)
 
     def select_word_file(self):
         file_selected = filedialog.askopenfilename(
@@ -146,9 +150,6 @@ class FileClassifierApp:
         # 右侧部分 - 视频分类和结果展示
         self.right_frame = tk.Frame(self.main_frame)
         self.right_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
-
-        # 初始化合并后的文件选择框架
-        self.init_file_selection_frame()
 
     def init_file_selection_frame(self):
         # 合并后的文件选择框架
@@ -248,7 +249,7 @@ class FileClassifierApp:
             return
 
         # 清空之前的分类结果
-        self.result_listbox.delete(0, tk.END)
+        # self.result_listbox.delete(0, tk.END)
         self.classification_status_label.config(text="Status: Classifying...")
         self.btn_classify_videos.config(state=tk.DISABLED)  # 分类过程中禁用按钮
 
