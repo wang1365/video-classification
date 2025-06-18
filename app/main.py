@@ -30,21 +30,21 @@ def extract_audio_from_mxf(video_path, output_audio_path="temp_audio.wav"):
 
 def audio_to_text(audio_path, model_size="base"):
     """使用Whisper模型将音频转换为文本"""
-    model = WhisperModel('base', device="cpu", compute_type="int8")
-    result = model.transcribe(audio_path)
-    print('========================>', result["text"])
-    # 返回转录的文本
-    return result["text"]
-    # try:
-    #     # 加载Whisper模型
-    #     model = whisper.load_model(model_size)
-    #     # 转录音频
-    #     result = model.transcribe(audio_path)
-    #     # 返回转录的文本
-    #     return result["text"]
-    # except Exception as e:
-    #     print(f"音频转文本时出错: {e}")
-    #     return None
+    # model = WhisperModel('base', device="cpu", compute_type="int8")
+    # result = model.transcribe(audio_path)
+    # print('========================>', result["text"])
+    # # 返回转录的文本
+    # return result["text"]
+    try:
+        # 加载Whisper模型
+        model = whisper.load_model(model_size)
+        # 转录音频
+        result = model.transcribe(audio_path)
+        # 返回转录的文本
+        return result["text"]
+    except Exception as e:
+        print(f"音频转文本时出错: {e}")
+        return None
 
 def extract_text_from_docx(docx_path):
     doc = Document(docx_path)
@@ -82,7 +82,7 @@ def extract_all_pdfs(pdfs):
     return result
 
 
-def main(video_path, pdf_info, model_size="base"):
+def main(video_path, word_info, model_size="base"):
     """主函数：从MXF视频中提取音频并转换为文本"""
     # 提取音频
     audio_path = extract_audio_from_mxf(video_path)
@@ -106,7 +106,7 @@ def main(video_path, pdf_info, model_size="base"):
 
     # 打印转录的文本
     texts = [transcription]
-    texts.extend(pdf_info.values())
+    texts.extend(word_info.values())
     print('==> 开始对比相似性...', transcription)
     result: numpy.ndarray = calculate_cosine_similarity(texts)
 
@@ -116,8 +116,8 @@ def main(video_path, pdf_info, model_size="base"):
     max_index = list(result[0][1:]).index(max_similarity) + 1  # 加上1是因为我们从第二个文本开始比较
 
     # 打印最大相似度的脚本
-    print(f"最大相似度: {max_similarity}, 对应的脚本: {list(pdf_info.keys())[max_index][:1000]}")
-    return list(pdf_info.keys())[max_index]
+    print(f"最大相似度: {max_similarity}, 对应的脚本: {list(word_info.keys())[max_index][:1000]}")
+    return list(word_info.keys())[max_index]
 
 if __name__ == "__main__":
     # 使用示例

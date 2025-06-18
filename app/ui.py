@@ -15,6 +15,8 @@ os.environ['PATH'] = os.environ['PATH'] + os.pathsep + "./_internal"
 
 class FileClassifierApp:
     def __init__(self, master):
+        self.word = {}
+
         self.init_frame(master)
 
         # 移除这两行，因为已经在init_frame中初始化
@@ -69,11 +71,17 @@ class FileClassifierApp:
         self.result_tree = ttk.Treeview(self.classify_frame, columns=('time', 'video', 'script'), show='headings')
         self.result_tree.heading('time', text='Time')  # 完成时间 -> Time
         self.result_tree.heading('video', text='Video File')  # Video文件 -> Video File
-        self.result_tree.heading('script', text='Matched Script')  # 匹配Script -> Matched Script
+        self.result_tree.heading('script', text='Matched Chapter')  # 匹配Script -> Matched Script
         # 设置列宽
         self.result_tree.column('time', width=180)
         self.result_tree.column('video', width=300)
         self.result_tree.column('script', width=300)
+
+        # 下面增加一个文本编辑框word_text，只读模式
+        # 点击result_tree的一行时，在这个word_text中展示result_tree这一行对应的script列的信息
+        self.word_text = tk.Text(self.classify_frame, height=10, width=60, state='disabled')
+        self.word_text.pack(side="left", fill="both", expand=True, pady=5)
+
 
         # 添加双击事件处理
         def on_tree_double_click(event):
@@ -89,11 +97,17 @@ class FileClassifierApp:
                     else:
                         messagebox.showerror("Error", "Video file not found!")
                 elif column == '#3' and values[2]:  # script列
-                    script_path = os.path.join(self.pdf_folder_path, values[2])
-                    if os.path.exists(script_path):
-                        os.startfile(script_path)
-                    else:
-                        messagebox.showerror("Error", "Script file not found!")
+                    #self.word_text 设置文本为self.word[values[2]]
+                    self.word_text.config(state='normal')
+                    self.word_text.delete('1.0', 'end')
+                    self.word_text.insert('1.0', self.word[values[2]])
+                    # 弹窗展示self.word信息
+                    # messagebox.showinfo("Matched Script", self.word[values[2]])
+                    # script_path = os.path.join(self.pdf_folder_path, values[2])
+                    # if os.path.exists(script_path):
+                    #     os.startfile(script_path)
+                    # else:
+                    #     messagebox.showerror("Error", "Script file not found!")
 
         self.result_tree.bind('<Double-1>', on_tree_double_click)
         # 滚动条
@@ -117,12 +131,6 @@ class FileClassifierApp:
         if file_selected:
             self.pdf_folder_path = os.path.dirname(file_selected)  # 保留文件夹路径
             self.word_file_label.config(text=file_selected)
-            # 更新PDF信息
-            self._update_word_info(file_selected)
-
-        self.word_folder_label.grid(row=0, column=1, columnspan=3, pady=5, sticky="w")
-
-        # 实现pdf_listbox的条目双击后打开pdf文件
 
 
     def init_frame(self, master):
@@ -161,7 +169,7 @@ class FileClassifierApp:
         self.word_file_label = tk.Label(self.word_section, text="No Word selected", anchor="w")
         self.word_file_label.grid(row=1, column=0, padx=5)
         # word_file_label 颜色设置为蓝色，下划线，鼠标为cursor，点击后可以打开文件
-        self.word_file_label.config(fg="blue", underline=True, cursor="hand2")
+        self.word_file_label.config(fg="blue", underline=True, cursor="hand2",wraplength=400, justify="left")
 
         def open_file(event):
             os.startfile(self.word_file_label.cget("text"))
@@ -260,34 +268,18 @@ class FileClassifierApp:
         classified_results = []
         video_files = [self.video_listbox.get(i) for i in range(self.video_listbox.size()) if
                        "此文件夹中没有找到" not in self.video_listbox.get(i)]
-        pdf_files = [self.pdf_listbox.get(i) for i in range(self.pdf_listbox.size()) if
-                     "此文件夹中没有找到" not in self.pdf_listbox.get(i)]
+        word_file = self.word_file_label.cget("text")
 
         if not video_files:
             return ["没有找到视频文件进行分类。"]
-        if not pdf_files:
-            return ["没有找到PDF剧本文件进行分类。"]
+        if not word_file:
+            return ["没有找到剧本文件进行分类。"]
 
         from app.main import extract_text_from_pdf, main
-        pfs = [os.path.join(self.pdf_folder_path, pf) for pf in pdf_files]
         vfs = [os.path.join(self.video_folder_path, vf) for vf in video_files]
 
-        pfs_info = {}
-        for pf in pfs:
-            pdf_name = os.path.basename(pf)
-            self.classification_status_label.config(text=f"Status: Extracting {pdf_name}...")
-            try:
-                text = extract_text_from_pdf(pf)
-                pfs_info[pf] = text
-
-                # 设置对应的PDF Listbox条目为绿色
-                for i in range(self.pdf_listbox.size()):
-                    if self.pdf_listbox.get(i) == pdf_name:
-                        self.pdf_listbox.itemconfig(i, {'fg': 'green'})
-                        break
-            except Exception as e:
-                print(f"Error extracting {pdf_name}: {str(e)}")
-                continue
+        from word import parse_word_document
+        self.word = parse_word_document(word_file)
 
         # 在_run_classification_logic方法中修改结果插入部分
         for vf in vfs:
@@ -295,7 +287,7 @@ class FileClassifierApp:
                 video_name = os.path.basename(vf)
                 self.classification_status_label.config(text=f"Status: Analyzing video {video_name}...")
 
-                result = main(vf, pfs_info)
+                result = main(vf, self.word)
                 current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
                 script_name = os.path.basename(result) if result else "未匹配"
                 self.result_tree.insert('', 'end', values=(current_time, video_name, script_name))
